@@ -1,0 +1,38 @@
+name: Polaris agent kit check
+description: Runs the polaris-agent-kit linter on a folder and fails the job on an error finding. Unofficial community kit, not affiliated with Shopify.
+author: Odera Joseph Echendu
+branding:
+  icon: check-circle
+  color: green
+inputs:
+  directory:
+    description: Folder to check, relative to the repository root.
+    required: false
+    default: "."
+  version:
+    description: Exact version of the polaris-agent-kit npm package to run. Pinned on purpose; a floating tag is refused.
+    required: false
+    default: "0.1.1"
+  strict:
+    description: Set to "true" to fail on advice findings too.
+    required: false
+    default: "false"
+runs:
+  using: composite
+  steps:
+    - name: Check Polaris web components
+      shell: bash
+      env:
+        KIT_VERSION: ${{ inputs.version }}
+        KIT_DIR: ${{ inputs.directory }}
+        KIT_STRICT: ${{ inputs.strict }}
+      run: |
+        case "$KIT_VERSION" in
+          [0-9]*.[0-9]*.[0-9]*) ;;
+          *) echo "version must be an exact version such as 0.1.1, not '$KIT_VERSION'" >&2; exit 2 ;;
+        esac
+        if [ "$KIT_STRICT" = "true" ]; then
+          npx -y "polaris-agent-kit@${KIT_VERSION}" check "$KIT_DIR" --strict
+        else
+          npx -y "polaris-agent-kit@${KIT_VERSION}" check "$KIT_DIR"
+        fi

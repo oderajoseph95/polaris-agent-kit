@@ -54,6 +54,7 @@ export function report(local, remote) {
   if (remote.tags) lines.push(`npm dist-tags (polaris-types): ${Object.entries(remote.tags).map(([k, v]) => `${k}=${v}`).join(", ")}`);
   lines.push(`CDN channels seen            : ${Object.entries(remote.channels).map(([k, v]) => `${k}=${v ?? "unreachable"}`).join(", ")}`);
   const ga2 = remote.channels["polaris-2.0.js"] === 200;
+  if (remote.channels["polaris-2.0.js"] === 404) lines.push("Polaris 2.0 stable: not published (polaris-2.0.js returned 404). The 2.0 release candidate is the newest 2.x this check can see.");
   if (ga2 && !names.includes("polaris-2.0.js")) { differs = true; lines.push("DIFFERS: polaris-2.0.js now exists (2.0 is out of release candidate). Move the script URL and polaris-types together."); }
   if (!ga2 && names.includes("polaris-2.0-rc.js")) lines.push("OK: you load the 2.0 release candidate and no stable 2.0 URL exists yet. Shopify does not document the RC URL as frozen (the versioned polaris-1.1.js is), so re-check it when you upgrade.");
   const major = majorOf(local.typesRange);

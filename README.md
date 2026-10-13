@@ -2,9 +2,11 @@
 
 **Rules and a linter that stop AI coding agents from writing broken Polaris 2.0 web components in Shopify embedded apps.** Works with Claude Code, Cursor, GitHub Copilot, Codex and Windsurf. Zero dependencies.
 
-> Unofficial community project, not affiliated with Shopify. Status: 0.1.0, first release. The checker and installer are tested on Windows and in CI on Linux; see [Tested and untested](#tested-and-untested) for what is not.
+> Unofficial community project, not affiliated with Shopify. Version 0.1.1, on npm. The checker and installer were run on Windows; CI on Linux, macOS and Windows is set up and has not run yet. See [Tested and untested](#tested-and-untested) for exactly what was and was not run.
 
-![The check command listing seven errors in a page an agent wrote, each with file, line and fix](docs/demo/check-demo.svg)
+![Real output, captured 2026-10-13: npx init --agent claude, then check, listing three mistakes in a small invented page, each with file, line and fix](docs/demo/install-to-result.png)
+
+The image is the real terminal output of the published 0.1.0 package from npm, run on Windows on 2026-10-13, on a small invented page (`init --agent claude`, then `check`). The 0.1.1 rules are newer than the image.
 
 ## The problem
 
@@ -12,7 +14,7 @@ Agents write Polaris from memory, and in our experience much of that memory is P
 
 ## Install in 3 commands
 
-> Published on npm as [`polaris-agent-kit`](https://www.npmjs.com/package/polaris-agent-kit) (0.1.0, 2026-10-13). To read the code before you run it: `git clone https://github.com/oderajoseph95/polaris-agent-kit && node polaris-agent-kit/bin/cli.mjs check <your app folder>`.
+> On npm as [`polaris-agent-kit`](https://www.npmjs.com/package/polaris-agent-kit). To read the code before you run it: `git clone https://github.com/oderajoseph95/polaris-agent-kit && node polaris-agent-kit/bin/cli.mjs check <your app folder>`.
 
 ```bash
 # 1. Claude Code only (two lines inside Claude Code). Other agents skip to step 2.
@@ -20,17 +22,19 @@ Agents write Polaris from memory, and in our experience much of that memory is P
 /plugin install polaris-agent-kit@polaris-agent-kit-marketplace
 
 # 2. Put the rules where your agent reads them (claude | cursor | copilot | codex | windsurf | all)
-npx -y polaris-agent-kit@0.1.0 init --agent claude
+npx -y polaris-agent-kit@0.1.1 init --agent claude
 
 # 3. Lint what the agent wrote (exit 1 on an error finding)
-npx -y polaris-agent-kit@0.1.0 check
+npx -y polaris-agent-kit@0.1.1 check
 ```
 
-The version is pinned on purpose: `npx -y` runs whatever it fetches, so a name you do not pin is code you did not read. The `npx` commands were run from npm on 2026-10-13 (`--version`, `init --agent claude`, `check`) on Windows; `node bin/cli.mjs <command>` from a clone does the same. A real Claude Code plugin install has not been run (see [what is tested](#tested-and-untested)). Full install notes, per agent, are [below](#install).
+The version is pinned on purpose: `npx -y` runs whatever it fetches, so a name you do not pin is code you did not read. The `npx` commands (`--version`, `init --agent claude`, `check`) were run from npm on 2026-10-13 on Windows, as version 0.1.0; macOS and Linux were not run by hand. `node bin/cli.mjs <command>` from a clone does the same. The Claude Code plugin install was run once in an isolated configuration folder (see [what is tested](#tested-and-untested)). Full install notes, per agent, are [below](#install).
 
 ## Before and after
 
-Everything here is **synthetic**: two small pages in [docs/demo/](docs/demo/), the first written the way an unassisted agent often writes it, the second after the kit's rules. The transcripts are the real output of `node bin/cli.mjs check` on each folder; a test fails if they drift from the files in `docs/demo/`. They are text, not screenshots, and they prove only what `check` can see, not that either page renders correctly.
+Everything here is **synthetic**: two small pages in [docs/demo/](docs/demo/), the first written the way an unassisted agent often writes it, the second after the kit's rules. The transcripts are the real output of `node bin/cli.mjs check` on each folder; a test fails if they drift from the files in `docs/demo/`. They prove only what `check` can see, not that either page renders correctly.
+
+More mistakes, caught in a second page (the transcript text below is kept honest by a test; the image above is the npm run).
 
 Before ([docs/demo/before.txt](docs/demo/before.txt)): the bad lines are a hyphenated `list-slot`, `checked="false"`, a boolean handed an expression, `import ... from "@shopify/polaris"`, the unversioned `polaris.js`, types for 2.x beside it, and a raw `gid` in a table cell.
 
@@ -110,10 +114,12 @@ Plain list of what was and was not verified, as of 2026-10-13. Nothing here is s
 
 | What | How |
 |---|---|
-| The kit's own tests | `node --test`, run on Node 24 on Windows 11. They include a drift check on every generated file, hostile-input tests for `init`, `check` and `refresh`, and this README's transcripts |
+| The kit's own tests | `node --test`, run on Node 24 on Windows 11 (the CI matrix below has not run yet). They include a drift check on every generated file, hostile-input tests for `init`, `check` and `refresh`, and this README's transcripts |
 | `check` against the real type packages | run on a template-shaped app with the real `@shopify/polaris-types@2.0.0-rc.3` (62 elements), `@shopify/polaris-types@1.1.0` and `@shopify/app-bridge-types@0.7.2`: exactly the planted findings, after the false positives that run exposed were fixed |
 | `check` on a large app | one app of about 1,300 `s-*` elements: no errors; a false-positive advice rule it exposed was fixed. One app, not a spread of strangers' apps |
 | The Claude Code manifests | `claude plugin validate` printed "Validation passed" for both |
+| The npm package | `npx` at version 0.1.0: `--version`, `init --agent claude` and `check` were run from npm on Windows 11, Node 24, 2026-10-13: version printed, the skill and references written, the planted mistakes reported (the image above) |
+| A Claude Code plugin install | in an isolated config folder (`CLAUDE_CONFIG_DIR`), Claude Code 2.1.294, Windows, 2026-10-13: marketplace added from a local folder, plugin installed and listed as enabled. Details: [docs/PROVEN-ON.md](docs/PROVEN-ON.md) |
 | Quoted Shopify, npm and react.dev text | re-read on 2026-10-13; the 31 URLs in the kit returned 200 (the 404s are intentional fixtures) |
 | `refresh` against shopify.dev | ran live once, before the security hardening: cached 10 pages with date, source URL and sha256 |
 | `init` refusing links | a project whose `.windsurf` was a junction was refused (it wrote outside the project before the fix) |
@@ -122,22 +128,22 @@ Plain list of what was and was not verified, as of 2026-10-13. Nothing here is s
 
 | What | Status |
 |---|---|
-| A real Claude Code plugin install | NEVER RUN. Only `claude plugin validate` ran. `${CLAUDE_PLUGIN_ROOT}` substitution inside the skill is unproven |
-| Cursor, GitHub Copilot and Windsurf rules, and `AGENTS.md` | The files follow the vendors' documented formats but none of those tools was started with them. The multi-glob syntax for Cursor and Windsurf is unconfirmed; Windsurf's newer `.devin/rules/` path was not tried |
+| The plugin in a live Claude Code session | Install and list were run (above). A session that loads the skill was not driven, so `${CLAUDE_PLUGIN_ROOT}` substitution inside the skill is unproven, and the GitHub-sourced marketplace line was not run |
+| Cursor, GitHub Copilot, Windsurf, Codex, and `AGENTS.md` | Not run, as of 2026-10-13: none of those tools is available to the maintainer's machine. The files follow the vendors' documented formats but no tool was started with them. The multi-glob syntax for Cursor and Windsurf is unconfirmed; Windsurf's newer `.devin/rules/` path was not tried |
 | React 19 | Boolean behaviour with custom elements is cited from react.dev, not driven. `boolean-false-expr` is switched off for React 19 projects |
 | `"false"` written as an attribute | Observed on React 18.3 with Polaris 1.x and 2.0 RC. Not tried on other React versions or other Polaris releases |
 | `clickDelegate` | The "link or checkbox only" behaviour was observed on Polaris 1.x. UNPROVEN on 2.0 RC |
 | Container-query grids and `s-query-container` | Observed once; not in Shopify's text. UNPROVEN |
 | "Do not add SRI to the Polaris script" | UNPROVEN |
 | Rows observed once (modal scrim, button-group gap, server-rendered table labels) | A stranger cannot reproduce them from the text yet |
-| Linux and macOS | The link guard in `init` is proven for Windows junctions only. File symlinks could not be created on the test machine; POSIX was never run |
-| Node 20 and 22 | The package says `>=20`, and the CI file tests 20 and 22, but it is not enabled until a repository exists. Only Node 24 ran |
+| Linux and macOS | **Pending first CI run.** `.github/workflows/test.yml` runs the tests on ubuntu, macos and windows, Node 20 and 22; it has not run yet. Nobody has run the `npx` commands by hand on macOS or Linux. The link guard in `init` is proven for Windows junctions only |
+| Node 20 and 22 | The package says `>=20`; the same CI matrix covers 20 and 22 and is **pending its first run**. Only Node 24 ran |
 | `refresh` after hardening | The redirect lock and size caps are unit-tested with a fake `fetch`. The hardened code has not been run against live shopify.dev, and rate limits were not exercised |
 | False-positive rate of `check` | Unknown beyond the apps named above. `boolean-false-expr` also flags `disabled={someBoolean}`, which is noisy and intended under React 18 |
 | Polaris 2.0 stable | Does not exist yet (`polaris-2.0.js` returned 404); everything is proven on the 2.0 release candidate. An old-design admin was not available. Languages: English and one long locale |
-| What a green `check` means | Only that none of the 17 patterns were found. The demo transcripts were not type-checked or opened in a browser |
+| What a green `check` means | Only that none of the 21 patterns were found. The demo transcripts were not type-checked or opened in a browser |
 | The trademark wording | Not reviewed by a lawyer |
-| Not built | A slot checker (a slot the parent does not implement); no hooks or slash commands in the plugin |
+| Not built | No hooks or slash commands in the plugin. The slot checker (`slot-not-declared`) needs `@shopify/polaris-types` installed and judges only a direct s-* or HTML parent |
 
 ## What is in it
 
@@ -152,12 +158,12 @@ Zero runtime dependencies. Node 20 or later. Plain ESM. MIT licence. Built from 
 **Any agent, from your project folder (recommended):**
 
 ```bash
-npx -y polaris-agent-kit@0.1.0 init --agent claude      # or cursor | copilot | codex | windsurf | all (comma list ok)
-npx -y polaris-agent-kit@0.1.0 refresh                  # Shopify's current component pages into .polaris-agent-kit-cache/ (git-ignored)
-npx -y polaris-agent-kit@0.1.0 check                    # lint
+npx -y polaris-agent-kit@0.1.1 init --agent claude      # or cursor | copilot | codex | windsurf | all (comma list ok)
+npx -y polaris-agent-kit@0.1.1 refresh                  # Shopify's current component pages into .polaris-agent-kit-cache/ (git-ignored)
+npx -y polaris-agent-kit@0.1.1 check                    # lint
 ```
 
-(These commands work once the package is published to npm. Until then, run `node bin/cli.mjs <command>` from a clone.)
+To read the code first, run `node bin/cli.mjs <command>` from a clone instead.
 
 What `init` writes (nothing outside the folder you run it in: it refuses to write through a symbolic link or junction, which a cloned repository can contain; it refuses to overwrite a file it did not generate unless you pass `--force`; the copied `references/` folders are kit-owned and are replaced on every run; `--dry-run` shows the plan):
 
@@ -171,7 +177,7 @@ What `init` writes (nothing outside the folder you run it in: it refuses to writ
 
 For every agent except Claude, the references are copied to `.polaris-agent-kit/references/` and the rule points at them. The generated files follow the vendors' documented formats but have not been driven in each agent (see [Tested and untested](#tested-and-untested)).
 
-**Claude Code plugin** (from a marketplace once the repository is published; `claude plugin validate` passes on the manifests, an install has not been run yet):
+**Claude Code plugin** (`claude plugin validate` passes on the manifests; an install from a local clone was run in an isolated config, the GitHub-sourced line below was not):
 
 ```
 /plugin marketplace add oderajoseph95/polaris-agent-kit
@@ -218,9 +224,35 @@ Or load it straight from a folder while developing: `claude --plugin-dir ./path/
 
 ## Screenshots
 
-[screenshots/](screenshots/) lists the shots this repo wants and what each should show. They are added by hand; none are generated, and none are committed yet. The before and after above is a text transcript for that reason.
+[screenshots/](screenshots/) lists the pictures of real embedded-admin pages this repo still wants. None are committed. The one image in this README is a capture of terminal output, not of a Shopify page.
+
+## Check your own CI with the kit
+
+A ready-made step, pinned to a release (the action's `version` input defaults to the same release and is refused if it is not an exact version):
+
+```yaml
+# .github/workflows/polaris.yml
+name: polaris
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: oderajoseph95/polaris-agent-kit@v0.1.1
+        with:
+          directory: .   # your app folder
+```
+
+It runs `npx -y polaris-agent-kit@0.1.1 check <directory>` and fails the job on an error finding (`strict: "true"` also fails on advice). Pin the action to a full commit SHA instead of a tag if your policy requires it. This step has not run in a real workflow yet (it needs this repository's `v0.1.1` tag).
 
 ## Contributing
+
+Pull requests and issues are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md) (how to add a rule, what will not be accepted) and the templates in `.github/`. The short version:
 
 1. Edit `source/core.md` (the always-on rules) or a file in `references/`. Never edit `SKILL.md` or anything in `adapters/` by hand: run `node bin/cli.mjs build`, commit the result. CI fails on drift.
 2. A new `check` rule needs: a bad fixture that FAILS, a good fixture that passes, a line in `RULES`, and an entry in `references/mistakes.md` stating the symptom you saw and the stack you saw it on. Show the test red first.
@@ -237,7 +269,7 @@ MIT, see [LICENSE](LICENSE). That is the only licence that applies to any file h
 
 ## Maintainers
 
-- **Releasing:** [docs/RELEASING.md](docs/RELEASING.md) has the exact steps (publish gate, version bump, changelog, tag `v0.1.0`, GitHub release notes, `npm publish`). `npm run prepublishOnly` refuses while the package is private, has no repository or any placeholder is left.
+- **Releasing:** [docs/RELEASING.md](docs/RELEASING.md) has the exact steps (publish gate, version bump, changelog, push a `v*` tag and the release workflow publishes through npm trusted publishing). `npm run prepublishOnly` refuses while the package is private, has no repository or any placeholder is left.
 - **GitHub description:** `UNOFFICIAL community kit, not affiliated with Shopify: rules and a linter that help AI coding agents (Claude Code, Cursor, Copilot, Codex, Windsurf) build embedded Shopify apps with Polaris 2.0 web components.`
 - **GitHub topics:** `polaris`, `polaris-web-components`, `polaris-2`, `shopify`, `shopify-app`, `shopify-embedded-app`, `ai-coding-agent`, `claude-code`, `claude-code-plugin`, `cursor`, `github-copilot`, `agent-skills`, `agents-md`, `linter`. Do not add "Built for Shopify" as a topic or keyword: it is Shopify's badge, not ours.
 

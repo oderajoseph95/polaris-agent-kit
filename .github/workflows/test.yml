@@ -1,4 +1,4 @@
-# Runs the kit's own tests. A file only: it is not enabled until the repository exists.
+# Runs the kit's own tests on Linux, macOS and Windows, Node 20 and 22.
 # Read-only token, no secrets, no `pull_request_target`, actions pinned to full commit SHAs (scripts/publish-gate.mjs enforces all three).
 name: test
 on:
@@ -9,15 +9,18 @@ permissions:
   contents: read
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: ${{ matrix.os }}, node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
         node: [20, 22]
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: ${{ matrix.node }}
       # No dependencies to install: the kit has none. `npm ci` is deliberately absent.
@@ -25,4 +28,6 @@ jobs:
         run: node bin/cli.mjs build --check
       - name: Tests
         run: node --test
+      - name: Publish gate
+        run: node scripts/publish-gate.mjs
       # `claude plugin validate .` is run by the maintainer before a release; CI does not install a global CLI from the network.

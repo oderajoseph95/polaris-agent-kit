@@ -20,7 +20,7 @@ test("the good project is clean (no finding, no advice)", () => {
 test("every error rule in RULES has a test below (a rule without a failing fixture is not a rule)", () => {
   const src = import.meta.url; // the list is checked against the names used in this file
   void src;
-  const covered = ["kebab-prop", "polaris-react-import", "script-unpinned", "script-missing", "script-duplicate", "url-mismatch", "types-script-mismatch", "types-unpinned", "tsconfig-types", "raw-gid-render", "boolean-string-false", "boolean-false-expr", "click-delegate-target", "unknown-prop", "unknown-element", "table-header-listslot", "inline-style"];
+  const covered = ["kebab-prop", "polaris-react-import", "script-unpinned", "script-missing", "script-duplicate", "url-mismatch", "types-script-mismatch", "types-unpinned", "tsconfig-types", "raw-gid-render", "boolean-string-false", "boolean-false-expr", "click-delegate-target", "unknown-prop", "unknown-element", "table-header-listslot", "inline-style", "slot-not-declared", "container-query-no-container", "gid-in-id", "table-loading-inert"];
   assert.deepEqual(Object.keys(RULES).sort(), covered.sort());
 });
 
@@ -207,4 +207,54 @@ test("false positives a stranger would hit: protocol-relative URL, image loading
   assert.ok(!rulesOf(referenced).includes("tsconfig-types"));
   const bridge = run({ "app/w.tsx": 'export const W = () => <s-app-window src="/x" />;\n' });
   assert.ok(!rulesOf(bridge).includes("unknown-element"));
+});
+
+// ---- 0.1.1 rules, each from a failure seen on screen on Polaris 2.0 RC / React 18.3 (references/mistakes.md rows 30 to 33) ----
+const CE_SLOTS = JSON.stringify({ modules: [{ declarations: [
+  { tagName: "s-section", members: [{ kind: "field", name: "heading" }], attributes: [], events: [], slots: [{ name: "" }, { name: "primary-action" }, { name: "secondary-actions" }] },
+  { tagName: "s-button", members: [{ kind: "field", name: "variant" }], attributes: [], events: [{ name: "click" }], slots: [{ name: "" }] },
+  { tagName: "s-page", members: [{ kind: "field", name: "heading" }], attributes: [], events: [], slots: [{ name: "" }, { name: "primary-action" }, { name: "breadcrumb-actions" }] },
+  { tagName: "s-link", members: [{ kind: "field", name: "href" }], attributes: [], events: [], slots: [{ name: "" }] },
+] }] });
+const withTypes = (tsx) => ({ "node_modules/@shopify/polaris-types/dist/custom-elements.json": CE_SLOTS, "app/s.tsx": tsx });
+
+test("slot-not-declared: a slot the parent element does not declare fails; declared slots, a wrapper component and an html parent pass; no types package means NOT checked", () => {
+  const bad = run(withTypes('export const S = () => (\n  <s-section heading="x">\n    <s-button slot="header-actions" variant="primary">Go</s-button>\n  </s-section>\n);\n'));
+  const f = bad.findings.find((x) => x.rule === "slot-not-declared");
+  assert.ok(f, "found");
+  assert.equal(f.line, 3);
+  assert.match(f.message, /header-actions/);
+  assert.match(f.message, /primary-action/, "the message lists what the parent does declare");
+  const good = run(withTypes('export const S = ({ more }) => (\n  <s-page heading="x">\n    <s-button slot="primary-action" variant="primary">Go</s-button>\n    <s-link slot="breadcrumb-actions" href="/">Back</s-link>\n    {more && <s-section><s-button slot="secondary-actions">x</s-button></s-section>}\n    <s-section><Wrapper><s-button slot="whatever">x</s-button></Wrapper></s-section>\n    <s-section><div><s-button slot="whatever">x</s-button></div></s-section>\n    <s-section><s-button slot="primary-action">x</s-button><s-button slot="primary-action" /></s-section>\n  </s-page>\n);\nexport const G = () => { const [a] = useState<string>(""); return <s-section><s-button slot="primary-action">x</s-button></s-section>; };\n'));
+  assert.ok(!rulesOf(good).includes("slot-not-declared"), rulesOf(good).join());
+  const noTypes = run({ "app/s.tsx": 'export const S = () => <s-section><s-button slot="header-actions">Go</s-button></s-section>;\n' });
+  assert.ok(!rulesOf(noTypes).includes("slot-not-declared"));
+  assert.ok(noTypes.notes.some((n) => /NOT checked/.test(n)));
+});
+
+test("container-query-no-container (advice): an @container value with no s-query-container in the file is reported; with the wrapper it passes", () => {
+  const bad = run({ "app/g.tsx": 'export const G = () => (\n  <s-section>\n    <s-grid gridTemplateColumns="@container (inline-size > 480px) 1fr 1fr, 1fr" />\n  </s-section>\n);\n' });
+  const f = bad.advice.find((x) => x.rule === "container-query-no-container");
+  assert.ok(f && f.line === 3, "reported on the line of the prop");
+  assert.equal(bad.findings.length, 0);
+  const good = run({ "app/g.tsx": 'export const G = () => (\n  <s-query-container>\n    <s-grid gridTemplateColumns="@container (inline-size > 480px) 1fr 1fr, 1fr" />\n  </s-query-container>\n);\n' });
+  assert.ok(!rulesOf(good).includes("container-query-no-container"));
+  assert.ok(!rulesOf(run({ "app/g.tsx": 'export const G = () => <s-grid gridTemplateColumns="1fr 1fr" />;\n' })).includes("container-query-no-container"));
+});
+
+test("gid-in-id (advice): a gid:// in an id or clickDelegate on an s-* element is reported; a plain row id passes", () => {
+  const bad = run({ "app/t.tsx": 'export const T = ({ row }) => (\n  <s-table-row clickDelegate={`open-${row.gid}`}>\n    <s-link id={`open-${row.gid}`} href="/x">x</s-link>\n    <s-link id="gid://shopify/Product/1">y</s-link>\n  </s-table-row>\n);\n' });
+  assert.equal(bad.advice.filter((f) => f.rule === "gid-in-id").length, 3);
+  assert.equal(bad.findings.length, 0);
+  const good = run({ "app/t.tsx": 'export const T = ({ row, i }) => (\n  <s-table-row clickDelegate={`open-${i}`}><s-link id={`open-${i}`} href="/x">x</s-link><s-link id="open-1">y</s-link></s-table-row>\n);\n' });
+  assert.ok(!rulesOf(good).includes("gid-in-id"));
+});
+
+test("table-loading-inert (advice): s-table loading plus a filters slot in the same file is reported; loading without filters, and filters without loading, pass", () => {
+  const files = (loading, filters) => ({ "app/t.tsx": `export const T = ({ busy }) => (\n  <s-table ${loading ? "loading={busy || undefined}" : ""}>\n    ${filters ? '<s-search-field slot="filters" label="Search" />' : ""}\n    <s-table-body />\n  </s-table>\n);\n` });
+  const bad = run(files(true, true));
+  assert.ok(bad.advice.some((f) => f.rule === "table-loading-inert" && f.line === 2));
+  assert.equal(bad.findings.length, 0);
+  assert.ok(!rulesOf(run(files(true, false))).includes("table-loading-inert"));
+  assert.ok(!rulesOf(run(files(false, true))).includes("table-loading-inert"));
 });

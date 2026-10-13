@@ -1,0 +1,39 @@
+# Publishes to npm when a version tag is pushed, using npm trusted publishing (GitHub OIDC). No npm token exists in this repository.
+# One-time setup by the owner on npmjs.com is written in docs/RELEASING.md; until it is done this workflow fails at the publish step and nothing is published.
+# Actions are pinned to full commit SHAs; the job's token is read-only except `id-token: write`, which is how npm verifies this workflow.
+name: release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      # Trusted publishing needs npm 11.5.1 or later and Node 22.14 or later (docs.npmjs.com/trusted-publishers); Node 24 ships a new enough npm.
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: The tag equals the package version
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ "${GITHUB_REF_NAME}" != "v${VERSION}" ]; then
+            echo "tag ${GITHUB_REF_NAME} does not equal v${VERSION} from package.json" >&2
+            exit 1
+          fi
+      - name: Generated files match source/
+        run: node bin/cli.mjs build --check
+      - name: Tests
+        run: node --test
+      - name: Publish gate
+        run: node scripts/publish-gate.mjs
+      - name: Publish
+        run: npm publish --provenance

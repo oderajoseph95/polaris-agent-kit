@@ -2,9 +2,27 @@
 
 Format: Keep a Changelog. Versioning policy: [docs/VERSIONING.md](docs/VERSIONING.md).
 
+## [0.1.1] - 2026-10-13
+
+### Added
+- `check` rules from failures seen on screen (Polaris 2.0 RC, React 18.3), 21 rules in all (10 errors, 11 advice): `slot-not-declared` (error; a slot the parent element does not declare renders nothing, needs `@shopify/polaris-types` installed), and advice `container-query-no-container`, `gid-in-id`, `table-loading-inert`. Each has a test shown red first and a row in `references/mistakes.md`.
+- `doctor` says plainly that Polaris 2.0 stable is not published while `polaris-2.0.js` returns 404.
+- A real install-to-result demo image, `docs/demo/install-to-result.png`: the output of `npx` `init --agent claude` and `check` from npm on Windows, 2026-10-13.
+- `action.yml`: a composite step that runs `check` on a folder at a pinned version, and a workflow snippet in the README.
+- `.github/workflows/release.yml`: publishes to npm on a pushed `v*` tag through npm trusted publishing (GitHub OIDC, provenance, no token in the repository).
+- `CONTRIBUTING.md`, a pull request template, two issue templates and `CODEOWNERS`.
+
+### Changed
+- CI is a matrix of ubuntu, macos and windows on Node 20 and 22 (first run pending), every action pinned to a full commit SHA at current releases.
+- README, `docs/PROVEN-ON.md`, `docs/RELEASING.md`, `docs/GOOD-FIRST-ISSUES.md` and `docs/VERSIONING.md` no longer say the package is unpublished or that CI is not enabled; the tested and untested table states what was run and what was not (a Claude Code plugin install was run once in an isolated configuration).
+- The generated rule files pin `npx -y polaris-agent-kit@0.1.1`.
+
+### Removed
+- `docs/demo/check-demo.svg`, replaced by the real capture.
+
 ## [0.1.0] - 2026-10-13
 
-Draft. Not published.
+First release, published to npm on 2026-10-13.
 
 ### Added
 - Rules (`source/core.md`) and 14 on-demand references.

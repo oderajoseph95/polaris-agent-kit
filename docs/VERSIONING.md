@@ -7,7 +7,7 @@ Semantic versioning for the CLI and the rules: `MAJOR.MINOR.PATCH`.
 - MAJOR: a `check` rule is removed or its meaning is reversed, a CLI flag is removed, or `init` writes to a different path.
 - MINOR: a new `check` rule, a new reference file, a new agent adapter, a new command.
 - PATCH: fixes to wording, a false positive, a broken URL.
-- Pre-release tags (`0.1.0-draft.1`) until the first public release. Everything is draft until then.
+- Pre-release tags (`0.2.0-rc.1`) are possible for a release that needs testing first; none has been used yet.
 
 ## Which Polaris it covers
 

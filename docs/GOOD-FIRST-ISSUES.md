@@ -19,7 +19,7 @@ Five starting points, each with what done looks like and the file to touch. None
 ## 3. Prove the link guard on Linux and macOS
 
 - **Title:** Test `init`'s symbolic-link guard with real symlinks on POSIX
-- **Today:** `init` refuses to write through a link. It was proven with Windows junctions only; creating file symlinks failed on the test machine, and no POSIX system was used.
+- **Today:** `init` refuses to write through a link. It was proven with Windows junctions only; creating file symlinks failed on the test machine. The CI matrix (`.github/workflows/test.yml`) runs the whole suite on Linux and macOS, but its first run is pending and the link tests there have not been written.
 - **Done looks like:** on Linux or macOS, tests that make a real directory symlink (`.windsurf` pointing outside the project) and a real file symlink (`AGENTS.md`, `.gitignore`) and show that `init` throws and writes nothing outside the project; each test shows red first with the guard removed; on a machine that cannot create symlinks the test is skipped with a stated reason, not passed; the "Linux and macOS" row of the README matrix is updated with the result and the OS version.
 - **Touch:** `test/security.test.mjs` (the existing link tests start near the `symlinkSync` helper), `README.md` matrix.
 

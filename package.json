@@ -1,6 +1,6 @@
 {
   "name": "polaris-agent-kit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "UNOFFICIAL community kit, not affiliated with Shopify. Rules, references and a linter that help AI coding agents (Claude Code, Cursor, GitHub Copilot, Codex, Windsurf) write Polaris 2.0 web components (s-page, s-table, s-modal) in embedded Shopify apps.",
   "type": "module",
   "license": "MIT",

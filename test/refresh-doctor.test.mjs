@@ -99,3 +99,11 @@ test("doctor.report: offline says so; a new stable 2.0 URL is flagged DIFFERS; r
   const moved = report(local, { tags: { latest: "1.1.0", next: "2.0.0-rc.4" }, channels: rc.channels });
   assert.equal(moved.differs, true);
 });
+
+test("doctor.report: says plainly that Polaris 2.0 stable is not published while polaris-2.0.js returns 404, and stays silent when it exists", () => {
+  const local = { typesRange: "2.0.0-rc.3", typesInstalled: "2.0.0-rc.3", scriptUrls: [{ name: "polaris-2.0-rc.js" }] };
+  const rc = { tags: { latest: "1.1.0", next: "2.0.0-rc.3" }, channels: { "polaris-1.js": 200, "polaris-2.0-rc.js": 200, "polaris-2.0.js": 404 } };
+  assert.ok(report(local, rc).lines.some((l) => /Polaris 2\.0 stable: not published/.test(l)));
+  const ga = { tags: { latest: "2.0.0", next: "2.0.0" }, channels: { ...rc.channels, "polaris-2.0.js": 200 } };
+  assert.ok(!report(local, ga).lines.some((l) => /not published/.test(l)));
+});

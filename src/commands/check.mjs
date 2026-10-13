@@ -4,7 +4,7 @@
 // grants the badge. Errors are things Shopify's docs or the installed types package settle; heuristics are advice.
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { scanTags, stripComments, lineIndex } from "../lib/scan.mjs";
+import { scanTags, stripComments, lineIndex, tagParents } from "../lib/scan.mjs";
 import { walk, rel, readJson, readJsonc, majorOf, isExactVersion, isTestFile, readSource, printable, MAX_LINE_CHARS } from "../lib/project.mjs";
 
 export const RULES = {
@@ -24,6 +24,10 @@ export const RULES = {
   "unknown-prop": ["error", "A prop that the installed @shopify/polaris-types does not declare on that element (needs the package installed). Standard HTML/React props and DOM event handlers are not judged."],
   "unknown-element": ["error", "An s-* element that the installed @shopify/polaris-types does not declare (needs the package installed)."],
   "table-header-listslot": ["advice", "An s-table-header without listSlot gets Shopify's default, 'labeled', so no column is the row's title in the phone (list) layout."],
+  "slot-not-declared": ["error", "An element names a slot its parent s-* element does not declare in the installed @shopify/polaris-types, so it is assigned to no slot and renders nothing, without an error (needs the package installed)."],
+  "container-query-no-container": ["advice", "A prop value uses an @container query but this file has no s-query-container; without a container the grid showed its fallback branch (observed once, Polaris 2.0 RC). A wrapper in another file may supply it."],
+  "gid-in-id": ["advice", "A gid:// identifier is used in an id or clickDelegate. A gid contains ':' and '/', which are not valid in an unescaped CSS selector; use a plain row key."],
+  "table-loading-inert": ["advice", "An s-table with a loading prop also holds a filters slot in this file. Shopify says a loading table 'might be in an inert state that prevents user interaction', which may include the filters inside it."],
   "inline-style": ["advice", "A style attribute on an s-* element; prefer the element's own props where one exists, so styling follows Polaris if its look changes."],
 };
 
@@ -65,6 +69,7 @@ export function loadElements(root) {
       out.set(decl.tagName, {
         props: new Set([...fields.map((m) => m.name), ...(decl.attributes ?? []).map((a) => a.fieldName).filter(Boolean)]),
         events: new Set((decl.events ?? []).map((e) => String(e.name).toLowerCase())),
+        slots: new Set((decl.slots ?? []).map((sl) => String(sl.name))),
         booleans: new Set(fields.filter((m) => m.type && /^boolean(\s*\|\s*undefined)?$/.test(m.type.text ?? "")).map((m) => m.name)),
       });
     }
@@ -98,6 +103,9 @@ function checkJsxFile(src, file, ctx, out) {
   if (tags.length) ctx.usesElements = true;
   const lineOf = lineIndex(clean);
   const needsLookup = /clickDelegate/.test(clean);
+  const parents = ctx.elements && /\bslot\s*=/.test(clean) ? tagParents(clean) : null;
+  const hasQueryContainer = /<s-query-container\b/.test(clean);
+  const hasFiltersSlot = /\bslot\s*=\s*["']filters["']/.test(clean);
   const byId = new Map();
   if (needsLookup) {
     for (const t of scanTags(clean, /[a-z][a-z0-9-]*/y)) {
@@ -115,11 +123,26 @@ function checkJsxFile(src, file, ctx, out) {
     if (t.tag === "s-table-header" && !t.spread && !emptyHeader && !t.attrs.some((a) => a.name === "listSlot")) {
       out.push(finding("table-header-listslot", file, t.line, "<s-table-header> has no listSlot.", 'Add listSlot: "primary" (the row\'s title), "labeled" (the default), "inline", "secondary" or "kicker" (the five values on Shopify\'s table page).'));
     }
+    if (t.tag === "s-table" && hasFiltersSlot && t.attrs.some((a) => a.name === "loading" && a.value && !(a.value.kind === "string" && a.value.text.trim() === "false") && !(a.value.kind === "expr" && a.value.text.trim() === "false"))) {
+      out.push(finding("table-loading-inert", file, t.line, "<s-table loading> and a filters slot are in the same file.", "Show a skeleton on first paint and a spinner outside the table on a refetch, so the filters stay usable (Shopify's table page: a loading table may be inert)."));
+    }
     for (const a of t.attrs) {
       if (/^(aria|data)-/.test(a.name)) continue;
       if (a.name.includes("-")) {
         out.push(finding("kebab-prop", file, a.line, `<${t.tag} ${a.name}> is a hyphenated attribute; JSX needs the camelCase prop name.`, `Write ${camel(a.name)}=… (tsc cannot catch this).`));
         continue;
+      }
+      if (parents && a.name === "slot" && a.value?.kind === "string" && (t.tag.startsWith("s-") || /^[a-z]/.test(t.tag))) {
+        const parent = ctx.elements.get(parents.get(t.start));
+        if (parent && parent.slots.size && !parent.slots.has(a.value.text.trim())) {
+          out.push(finding("slot-not-declared", file, a.line, `<${t.tag} slot="${a.value.text.trim()}"> sits in <${parents.get(t.start)}>, which declares only: ${[...parent.slots].map((x) => x || "(default)").join(", ")}.`, "Use one of the parent's slots, or move the element to the parent that has the slot. An unknown slot name renders nothing and raises no error."));
+        }
+      }
+      if (a.value && /@container\b/.test(a.value.text) && !hasQueryContainer) {
+        out.push(finding("container-query-no-container", file, a.line, `<${t.tag} ${a.name}> uses an @container query and no <s-query-container> is in this file.`, "Wrap the grid in <s-query-container> (or confirm a parent component does) and look at it at 1280 and 390."));
+      }
+      if (a.value && (a.name === "id" || a.name === "clickDelegate") && (/gid:\/\/shopify\//.test(a.value.text) || (a.value.kind === "expr" && /\$\{[^}]*(?:\.gid|[a-z]Gid|\bgid)\s*\}/.test(a.value.text)))) {
+        out.push(finding("gid-in-id", file, a.line, `<${t.tag} ${a.name}> is built from a gid.`, "Use a plain row key (an index or a numeric id) for the id and for clickDelegate."));
       }
       if (a.name === "style") out.push(finding("inline-style", file, a.line, `<${t.tag}> carries a style attribute.`, "Use the element's props (gap, padding, inlineSize…) instead of inline CSS."));
       if (known && !APP_BRIDGE_ELEMENTS.has(t.tag) && !GLOBAL_ATTRS.has(a.name)) {

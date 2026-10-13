@@ -119,3 +119,37 @@ export function scanTags(src, tagPattern = /s-[a-z][a-z0-9-]*/y) {
   }
   return out;
 }
+
+const HTML_VOID = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]);
+// Lowercase TypeScript type names that can follow `<` in a generic (`useState<string>`); never JSX.
+const TS_TYPE_WORDS = new Set(["string", "number", "boolean", "unknown", "any", "never", "void", "object", "null", "undefined", "symbol", "bigint"]);
+
+/**
+ * For every opening tag (`s-*`, lowercase HTML or a Capitalised component) its enclosing tag name, or `null` at the top.
+ * Returns `Map<start offset, parent tag>`. A heuristic nesting pass, not a parser: a `<` glued to the end of an identifier
+ * (`useState<string>`) is a generic, not a tag, and an unmatched closing tag is ignored. When the nesting is unclear the
+ * parent is a Capitalised component or HTML tag, which callers treat as "unknown", so the failure is a missed finding,
+ * never an invented one.
+ */
+export function tagParents(src) {
+  const events = [];
+  for (const t of scanTags(src, /[A-Za-z][\w.:-]*/y)) {
+    const glued = t.start > 0 && /[\w$)\]]/.test(src[t.start - 1]);
+    if (glued || TS_TYPE_WORDS.has(t.tag)) continue;
+    events.push({ at: t.start, open: true, tag: t.tag, selfClosing: t.selfClosing || HTML_VOID.has(t.tag) });
+  }
+  for (const m of src.matchAll(/<\/([A-Za-z][\w.:-]*)\s*>/g)) events.push({ at: m.index, open: false, tag: m[1] });
+  events.sort((a, b) => a.at - b.at);
+  const parents = new Map();
+  const stack = [];
+  for (const e of events) {
+    if (e.open) {
+      parents.set(e.at, stack.length ? stack[stack.length - 1] : null);
+      if (!e.selfClosing) stack.push(e.tag);
+    } else {
+      const i = stack.lastIndexOf(e.tag);
+      if (i >= 0) stack.length = i;
+    }
+  }
+  return parents;
+}

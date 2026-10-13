@@ -56,7 +56,7 @@ const SECRET = [
   [/eyJ[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{15,}\./, "a JWT"],
 ];
 const EMAIL = /[\w.+-]+@[A-Za-z][\w-]*(?:\.[\w-]+)+/g;
-const EMAIL_OK = /(noreply|example\.(com|org)|@shopify\.|@anthropic)/i;
+const EMAIL_OK = /(noreply|@v\d+\.\d+\.\d+$|example\.(com|org)|@shopify\.|@anthropic)/i;
 for (const f of publish) {
   if (NEVER.test(f)) problems.push(`${f} must never be published`);
   const text = readFileSync(join(root, f), "utf8");
