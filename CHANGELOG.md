@@ -23,7 +23,7 @@ Draft. Not published.
 
 ### README and maintainer docs (2026-10-13)
 - README: problem statement, three-command pinned install, a synthetic before/after with the real `check` transcripts (`docs/demo/`, kept honest by `test/demo.test.mjs`), a tested/untested list, licence and safety notes, maintainer topics.
-- `docs/RELEASING.md`, `docs/GOOD-FIRST-ISSUES.md`, `docs/PROFILE-SNIPPET.md` (a draft, not shipped in the npm package).
+- `docs/RELEASING.md`, `docs/GOOD-FIRST-ISSUES.md` (a draft, not shipped in the npm package).
 - The publish gate also refuses a README install pin that differs from `package.json`; the npm `files` list names only the docs that ship.
 - `--help` no longer calls `check` a "compliance" linter.
 

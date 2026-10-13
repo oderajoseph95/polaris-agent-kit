@@ -1,16 +1,18 @@
 # Polaris agent kit
 
-> **UNOFFICIAL community project. Not affiliated with, endorsed by, or sponsored by Shopify Inc.** "Shopify" and "Polaris" are Shopify's trademarks, used here only to say what this kit is about. Shopify's own documentation is the authority: where this kit and Shopify disagree, Shopify is right and this kit has a bug.
+**Rules and a linter that stop AI coding agents from writing broken Polaris 2.0 web components in Shopify embedded apps.** Works with Claude Code, Cursor, GitHub Copilot, Codex and Windsurf. Zero dependencies.
 
-A kit that helps AI coding agents (Claude Code, Cursor, GitHub Copilot, Codex and any agent that reads `AGENTS.md`, Windsurf) build embedded Shopify apps with **Polaris 2.0 web components** (`s-page`, `s-table`, `s-modal` ...) without repeating the mistakes that cost real apps real time. It is a set of rules and references for the agent, plus a linter for the problems a type checker cannot see.
+> Unofficial community project, not affiliated with Shopify. Status: 0.1.0, first release. The checker and installer are tested on Windows and in CI on Linux; see [Tested and untested](#tested-and-untested) for what is not.
 
-It does not make an app compliant, approved or "Built for Shopify". Only Shopify decides that, and a clean run of this kit proves less than a page you have opened and clicked.
+![The check command listing seven errors in a page an agent wrote, each with file, line and fix](docs/demo/check-demo.svg)
 
 ## The problem
 
 Agents write Polaris from memory, and in our experience much of that memory is Polaris 1, the React library. The code type-checks and is still wrong: a hyphenated prop (`list-slot`) that `tsc` cannot see and the browser ignores; the deprecated `@shopify/polaris` React package added when web components were meant; an unversioned script URL next to Polaris 2.0 types that do not match it; boolean props React 18 writes as the string `"false"`, which Polaris reads as true. This kit gives the agent the rules before it writes, and a linter that catches what the compiler cannot.
 
 ## Install in 3 commands
+
+> Until the package is on npm and a release is tagged, install from a clone: `git clone https://github.com/oderajoseph95/polaris-agent-kit && node polaris-agent-kit/bin/cli.mjs check <your app folder>`. The three commands below work once `polaris-agent-kit@0.1.0` is published.
 
 ```bash
 # 1. Claude Code only (two lines inside Claude Code). Other agents skip to step 2.
@@ -82,6 +84,24 @@ ok: 2 file(s), 12 s-* element(s) scanned, no findings.
 
 Read the note in the second run: the demo folders do not install `@shopify/polaris-types`, so the two rules that need the real types were not run. In your project they run.
 
+## What it is, and what it is not
+
+A set of rules and references the agent reads before it writes, plus a linter for the problems a type checker cannot see. "Shopify" and "Polaris" are Shopify's trademarks, used here only to say what this kit is about. Shopify's own documentation is the authority: where this kit and Shopify disagree, Shopify is right and this kit has a bug.
+
+It does not make an app compliant, approved or "Built for Shopify". Only Shopify decides that, and a clean run of this kit proves less than a page you have opened and clicked.
+
+## Proven on
+
+| Thing | Version it was proven on |
+|---|---|
+| Polaris script | `polaris-2.0-rc.js` (2.0 release candidate) |
+| `@shopify/polaris-types` | `2.0.0-rc.3` |
+| React | 18.3 |
+| App template | Shopify's React Router app template |
+| Dates | rules observed August to October 2026; drafted 2026-10-13 |
+
+Rules the kit could not prove on that stack are labelled **UNPROVEN** where they appear. Matrix and policy: [docs/PROVEN-ON.md](docs/PROVEN-ON.md), [docs/VERSIONING.md](docs/VERSIONING.md). Run `doctor` to see how your project compares with what exists today.
+
 ## Tested and untested
 
 Plain list of what was and was not verified, as of 2026-10-13. Nothing here is softened; [docs/PROVEN-ON.md](docs/PROVEN-ON.md) has the rule-by-rule matrix.
@@ -118,18 +138,6 @@ Plain list of what was and was not verified, as of 2026-10-13. Nothing here is s
 | What a green `check` means | Only that none of the 17 patterns were found. The demo transcripts were not type-checked or opened in a browser |
 | The trademark wording | Not reviewed by a lawyer |
 | Not built | A slot checker (a slot the parent does not implement); no hooks or slash commands in the plugin |
-
-## Proven on
-
-| Thing | Version it was proven on |
-|---|---|
-| Polaris script | `polaris-2.0-rc.js` (2.0 release candidate) |
-| `@shopify/polaris-types` | `2.0.0-rc.3` |
-| React | 18.3 |
-| App template | Shopify's React Router app template |
-| Dates | rules observed August to October 2026; drafted 2026-10-13 |
-
-Rules the kit could not prove on that stack are labelled **UNPROVEN** where they appear. Matrix and policy: [docs/PROVEN-ON.md](docs/PROVEN-ON.md), [docs/VERSIONING.md](docs/VERSIONING.md). Run `doctor` to see how your project compares with what exists today.
 
 ## What is in it
 

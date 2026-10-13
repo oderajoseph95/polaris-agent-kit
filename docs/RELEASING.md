@@ -9,7 +9,7 @@ Only the owner publishes: from their own machine, with two-factor authentication
 1. Create the repository (owner decision). Set your own git identity, then `git commit --amend --reset-author` on the single commit, so the history names you and not the neutral placeholder. Run `git log --format='%an <%ae> %ai'` and read it.
 2. Fill `LICENSE`, `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` with the copyright holder / author name you want. Done: they name Odera Joseph Echendu.
 3. Add `"repository"` to `package.json`, replace the owner-and-repository placeholder in the README's plugin install lines (the publish gate lists every file that still has one), and remove `"private": true`.
-4. Maintainer notes that should not be public: decide whether `docs/RELEASING.md` and `docs/PROFILE-SNIPPET.md` stay in the repository. `docs/PROFILE-SNIPPET.md` names a second repository; it is not in the npm package (`files` lists only what ships) but it would be in the public Git history. Delete it, or move it out, before the first push if you do not want that.
+4. Maintainer notes: `docs/RELEASING.md` stays; nothing that names another project belongs in this repository.
 5. Search the whole tree one last time, by hand, for names that must not appear: your own private projects, stores, tickets, people and e-mail addresses. The test suite checks generic patterns only. Expected remaining hit: the design-system link in `docs/PROFILE-SNIPPET.md`, if you keep it.
 6. Reserve the npm name soon after: an unclaimed name can be taken by someone else before the first publish.
 
@@ -90,4 +90,4 @@ npm publish
 2. Run the three install commands from the top of the README in a throwaway project and read what they write.
 3. In Claude Code, run the two plugin lines from the top of the README (`/plugin marketplace add` with your owner and repository, then `/plugin install polaris-agent-kit@polaris-agent-kit-marketplace`). This has never been run. Record the result in `docs/PROVEN-ON.md` and the README matrix either way.
 4. Enable `.github/workflows/test.yml` by pushing it (it is already in the repository) and check that Node 20 and 22 pass; update the "Node 20 and 22" row in the README matrix.
-5. Pin the repository on your profile (see `docs/PROFILE-SNIPPET.md`).
+5. Pin the repository on your profile.
