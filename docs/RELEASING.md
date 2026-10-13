@@ -1,6 +1,6 @@
 # Releasing
 
-Maintainers only. These are the exact steps for the first release, `v0.1.0`. Steps 0.1 to 0.3 are done: the repository is github.com/oderajoseph95/polaris-agent-kit, the copyright holder and author are named, and the history carries the owner identity. The package is still marked private until the first npm publish. Whoever runs a step first fixes this file if it is wrong.
+Maintainers only. These are the exact steps for the first release, `v0.1.0`. Steps 0.1 to 0.3 are done: the repository is github.com/oderajoseph95/polaris-agent-kit, the copyright holder and author are named, and the history carries the owner identity. The package was first published to npm as 0.1.0 on 2026-10-13. Whoever runs a step first fixes this file if it is wrong.
 
 Only the owner publishes: from their own machine, with two-factor authentication on the npm account. Never put an automation token in the repository.
 
