@@ -12,7 +12,7 @@ Agents write Polaris from memory, and in our experience much of that memory is P
 
 ## Install in 3 commands
 
-> Until the package is on npm and a release is tagged, install from a clone: `git clone https://github.com/oderajoseph95/polaris-agent-kit && node polaris-agent-kit/bin/cli.mjs check <your app folder>`. The three commands below work once `polaris-agent-kit@0.1.0` is published.
+> Published on npm as [`polaris-agent-kit`](https://www.npmjs.com/package/polaris-agent-kit) (0.1.0, 2026-10-13). To read the code before you run it: `git clone https://github.com/oderajoseph95/polaris-agent-kit && node polaris-agent-kit/bin/cli.mjs check <your app folder>`.
 
 ```bash
 # 1. Claude Code only (two lines inside Claude Code). Other agents skip to step 2.
@@ -26,7 +26,7 @@ npx -y polaris-agent-kit@0.1.0 init --agent claude
 npx -y polaris-agent-kit@0.1.0 check
 ```
 
-The version is pinned on purpose: `npx -y` runs whatever it fetches, so a name you do not pin is code you did not read. Step 1 and the `npx` commands work once the repository and the package are published; until then run `node bin/cli.mjs <command>` from a clone. A real Claude Code plugin install has not been run (see [what is tested](#tested-and-untested)). Full install notes, per agent, are [below](#install).
+The version is pinned on purpose: `npx -y` runs whatever it fetches, so a name you do not pin is code you did not read. The `npx` commands were run from npm on 2026-10-13 (`--version`, `init --agent claude`, `check`) on Windows; `node bin/cli.mjs <command>` from a clone does the same. A real Claude Code plugin install has not been run (see [what is tested](#tested-and-untested)). Full install notes, per agent, are [below](#install).
 
 ## Before and after
 
