@@ -63,6 +63,5 @@
     "agent-skills",
     "linter",
     "unofficial"
-  ],
-  "private": true
+  ]
 }
