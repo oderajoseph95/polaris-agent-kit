@@ -1,0 +1,8 @@
+{
+  "name": "polaris-agent-kit",
+  "version": "0.1.0",
+  "description": "UNOFFICIAL community kit, not affiliated with Shopify: rules, references and a linter that help Claude Code write Polaris 2.0 web components in embedded Shopify apps.",
+  "author": { "name": "Odera Joseph Echendu", "url": "https://github.com/oderajoseph95" },
+  "license": "MIT",
+  "keywords": ["polaris", "polaris-2", "polaris-web-components", "shopify", "embedded-app", "lint", "unofficial"]
+}

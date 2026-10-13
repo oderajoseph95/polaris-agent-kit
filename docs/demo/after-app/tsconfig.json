@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "strict": true,
+    "types": ["react", "vite/client", "@shopify/polaris-types", "@shopify/app-bridge-types"]
+  }
+}

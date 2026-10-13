@@ -1,0 +1,4 @@
+node_modules/
+.polaris-agent-kit-cache/
+*.log
+.DS_Store

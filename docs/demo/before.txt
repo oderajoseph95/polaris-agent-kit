@@ -1,0 +1,35 @@
+$ node bin/cli.mjs check docs/demo/before-app
+app/routes/app.items.tsx:12  [kebab-prop] <s-table-header list-slot> is a hyphenated attribute; JSX needs the camelCase prop name.
+    fix: Write listSlot=… (tsc cannot catch this).
+app/routes/app.items.tsx:13  [kebab-prop] <s-table-header list-slot> is a hyphenated attribute; JSX needs the camelCase prop name.
+    fix: Write listSlot=… (tsc cannot catch this).
+app/routes/app.items.tsx:24  [boolean-string-false] <s-switch checked="false"> is present, so it is true.
+    fix: Omit the prop, or write it as {cond || undefined}.
+app/routes/app.items.tsx:25  [boolean-false-expr] <s-button loading={isSaving}> is an expression that can be `false`.
+    fix: Write loading={isSaving || undefined}, or spread {...(cond ? { loading: true } : {})}.
+app/routes/app.items.tsx:25  [boolean-false-expr] <s-button disabled={isSaving}> is an expression that can be `false`.
+    fix: Write disabled={isSaving || undefined}, or spread {...(cond ? { disabled: true } : {})}.
+package.json:1  [types-script-mismatch] @shopify/polaris-types is ^2.0.0-rc.3 (major 2) but the script loaded is major 1.
+    fix: Move the script URL and the types package together; see references/install-and-pinning.md.
+tsconfig.json:1  [tsconfig-types] compilerOptions.types is set (an allowlist) and does not name @shopify/polaris-types.
+    fix: Add "@shopify/polaris-types" to types.
+
+ADVICE (does not change the exit code):
+package.json:1  [polaris-react-import] package.json declares @shopify/polaris, which npm marks as deprecated by Shopify.
+    fix: Plan to remove it and keep only @shopify/polaris-types; web components need no import. Both can coexist while you migrate (silence with --ignore polaris-react-import).
+app/routes/app.items.tsx:2  [polaris-react-import] Imports @shopify/polaris, the React package that npm marks as deprecated by Shopify.
+    fix: Move to the web components (s-page, s-table…); they need no import. Both can coexist while you migrate.
+app/routes/app.items.tsx:12  [table-header-listslot] <s-table-header> has no listSlot.
+    fix: Add listSlot: "primary" (the row's title), "labeled" (the default), "inline", "secondary" or "kicker" (the five values on Shopify's table page).
+app/routes/app.items.tsx:13  [table-header-listslot] <s-table-header> has no listSlot.
+    fix: Add listSlot: "primary" (the row's title), "labeled" (the default), "inline", "secondary" or "kicker" (the five values on Shopify's table page).
+app/routes/app.items.tsx:19  [raw-gid-render] {item.gid} puts a gid into visible text.
+    fix: Show a readable name (resource type + number, or the title) instead of the raw id.
+app/root.tsx:10  [script-unpinned] polaris.js is the legacy unversioned entry point; it never serves 2.x.
+    fix: Use a versioned URL (polaris-1.js, or the 2.0 release-candidate URL) from ONE constant; see references/install-and-pinning.md.
+package.json:1  [types-unpinned] @shopify/polaris-types is "^2.0.0-rc.3", a range.
+    fix: Pin the exact version. (For the 2.0 release candidate, Shopify's guide installs @shopify/polaris-types@^2.0.0-rc.0 and says to pin the exact version for reproducible installs.)
+note: @shopify/polaris-types is not installed here, so unknown-prop and unknown-element were NOT checked and boolean props use a short built-in list.
+
+7 finding(s) in 2 file(s).
+[exit code 1]

@@ -1,0 +1,28 @@
+# Runs the kit's own tests. A file only: it is not enabled until the repository exists.
+# Read-only token, no secrets, no `pull_request_target`, actions pinned to full commit SHAs (scripts/publish-gate.mjs enforces all three).
+name: test
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node }}
+      # No dependencies to install: the kit has none. `npm ci` is deliberately absent.
+      - name: Generated files match source/
+        run: node bin/cli.mjs build --check
+      - name: Tests
+        run: node --test
+      # `claude plugin validate .` is run by the maintainer before a release; CI does not install a global CLI from the network.

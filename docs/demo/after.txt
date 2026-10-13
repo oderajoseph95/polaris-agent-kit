@@ -1,0 +1,5 @@
+$ node bin/cli.mjs check docs/demo/after-app
+note: @shopify/polaris-types is not installed here, so unknown-prop and unknown-element were NOT checked and boolean props use a short built-in list.
+
+ok: 2 file(s), 12 s-* element(s) scanned, no findings.
+[exit code 0]

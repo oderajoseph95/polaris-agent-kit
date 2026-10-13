@@ -1,0 +1,12 @@
+{
+  "name": "polaris-agent-kit-marketplace",
+  "description": "Unofficial community marketplace for one plugin, polaris-agent-kit (not affiliated with Shopify)",
+  "owner": { "name": "Odera Joseph Echendu" },
+  "plugins": [
+    {
+      "name": "polaris-agent-kit",
+      "source": "./",
+      "description": "Rules, on-demand references and a linter for Polaris 2.0 web components in embedded Shopify apps. Unofficial; not affiliated with Shopify."
+    }
+  ]
+}
